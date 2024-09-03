@@ -21,7 +21,7 @@
     "lint:prettier:check": "prettier --check .",
     "lint:prettier:fix": "prettier --write .",
     "lint:eslint:check": "next lint --dir .",
-    "secret:check": "secretlint \"**/*\"",
+    "lint:secretlint:check": "secretlint \"**/*\"",
     "prepare": "husky"
   },
   "author": "",
