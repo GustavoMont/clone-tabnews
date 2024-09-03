@@ -4,8 +4,10 @@
   "description": "Projeto para aprender mais sobre programação e desenvolvimento, na vida real",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run services:up && npm run services:wait:database && npm run migrations:up && next dev",
-    "test": "npm run services:up && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --forceExit --verbose\"",
+    "predev": "npm run services:up && npm run services:wait:database && npm run migrations:up",
+    "dev": "next dev",
+    "pretest": "npm run services:up",
+    "test": "concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --forceExit --verbose\"",
     "posttest": "npm run services:stop",
     "test:watch": "jest --watchAll --runInBand",
     "commit": "cz",
