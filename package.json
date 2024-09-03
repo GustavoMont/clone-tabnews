@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "predev": "npm run services:up && npm run services:wait:database && npm run migrations:up",
-    "dev": "next dev",
+    "dev": "trap \"echo && echo 👋😁 Bye...\n\" INT TERM && next dev",
+    "postdev": "npm run services:stop",
     "pretest": "npm run services:up",
     "test": "concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --forceExit --verbose\"",
     "posttest": "npm run services:stop",
