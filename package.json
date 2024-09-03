@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "commit": "cz",
-    "dev": "npm run services:up && npm run wait-for-db && npm run migration:up && next dev",
+    "dev": "npm run services:up && npm run services:wait:database && npm run migration:up && next dev",
     "services:up": "docker compose -f infra/compose.yaml up -d",
     "services:down": "docker compose -f infra/compose.yaml down",
     "services:stop": "docker compose -f infra/compose.yaml stop",
+    "services:wait:database": "node infra/scripts/wait-for-db.js",
     "lint:prettier:check": "prettier --check .",
     "lint:prettier:fix": "prettier --write .",
     "lint:eslint:check": "next lint --dir .",
@@ -17,7 +18,6 @@
     "test:watch": "jest --watchAll --runInBand",
     "migration:create": "node-pg-migrate -m infra/migrations create",
     "migration:up": "node-pg-migrate -m infra/migrations up --envPath .env.development",
-    "wait-for-db": "node infra/scripts/wait-for-db.js",
     "prepare": "husky"
   },
   "author": "",
