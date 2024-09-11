@@ -33,6 +33,7 @@ export default async function migrations(req, res) {
         .json(appliedMigrations);
     }
   } catch (error) {
+    console.error(error);
     return res.status(500).end();
   } finally {
     await dbClient.end();
