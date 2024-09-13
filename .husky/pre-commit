@@ -1,1 +1,1 @@
-npm run secret:check
+npm run lint:secretlint:check
