@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "predev": "npm run services:up && npm run services:wait:database && npm run migrations:up",
-    "dev": "trap \"echo && echo 👋😁 Bye...\n\" INT TERM && next dev",
+    "dev": "next dev",
     "postdev": "npm run services:stop",
     "pretest": "npm run services:up",
     "test": "concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --forceExit --verbose\"",
@@ -35,7 +35,8 @@
     "node-pg-migrate": "7.6.1",
     "pg": "8.12.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "swr": "2.2.5"
   },
   "devDependencies": {
     "@commitlint/cli": "19.4.1",
