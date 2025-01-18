@@ -1,41 +1,53 @@
 import migrationRunner from "node-pg-migrate";
 import { resolve } from "node:path";
 import database from "infra/database.js";
+import { createRouter } from "next-connect";
+import controller from "infra/controller.js";
 
-export default async function migrations(req, res) {
-  const allowedMethos = ["GET", "POST"];
-  if (!allowedMethos.includes(req.method)) {
-    return res.status(405).end();
-  }
+const router = createRouter();
+
+router.get(getHandler);
+
+router.post(postHandler);
+
+export default router.handler(controller.erroHandlers);
+
+const defaultMigrationOptions = {
+  dryRun: true,
+  dir: resolve("infra", "migrations"),
+  direction: "up",
+  verbose: true,
+  migrationsTable: "pgmigrations",
+};
+
+async function getHandler(req, res) {
   let dbClient;
   try {
     dbClient = await database.getNewClient();
-    const defaultMigrationOptions = {
+
+    const pendingMigrations = await migrationRunner({
+      ...defaultMigrationOptions,
       dbClient,
-      dryRun: true,
-      dir: resolve("infra", "migrations"),
-      direction: "up",
-      verbose: true,
-      migrationsTable: "pgmigrations",
-    };
-    if (req.method === "GET") {
-      const pendingMigrations = await migrationRunner(defaultMigrationOptions);
-      return res.status(200).json(pendingMigrations);
-    }
-    if (req.method === "POST") {
-      const appliedMigrations = await migrationRunner({
-        ...defaultMigrationOptions,
-        dryRun: false,
-      });
-      const hasAppliedMigrations = appliedMigrations.length;
-      return res
-        .status(hasAppliedMigrations ? 201 : 200)
-        .json(appliedMigrations);
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).end();
+    });
+    return res.status(200).json(pendingMigrations);
   } finally {
-    await dbClient.end();
+    await dbClient?.end();
+  }
+}
+
+async function postHandler(req, res) {
+  let dbClient;
+  try {
+    dbClient = await database.getNewClient();
+
+    const appliedMigrations = await migrationRunner({
+      ...defaultMigrationOptions,
+      dryRun: false,
+      dbClient,
+    });
+    const hasAppliedMigrations = appliedMigrations.length;
+    return res.status(hasAppliedMigrations ? 201 : 200).json(appliedMigrations);
+  } finally {
+    await dbClient?.end();
   }
 }
