@@ -1,6 +1,13 @@
-import { InternalServerError, MethodNotAllowedError } from "./errors.js";
+import {
+  InternalServerError,
+  MethodNotAllowedError,
+  ValidationError,
+} from "./errors.js";
 
 function onErrorHandler(error, req, res) {
+  if (error instanceof ValidationError) {
+    return res.status(error.statusCode).json(error);
+  }
   let publicError = new InternalServerError({
     cause: error,
     statusCode: error.statusCode,
