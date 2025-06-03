@@ -8,17 +8,10 @@ beforeAll(async () => {
 });
 
 describe("GET /api/v1/users/[username]", () => {
+  let user;
   beforeAll(async () => {
-    await fetch("http://localhost:3000/api/v1/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: "email@email.com",
-        username: "username",
-        password: "senha123",
-      }),
+    user = await orchestrator.createUser({
+      username: "username",
     });
   });
   describe("Anonymous user", () => {
@@ -30,7 +23,7 @@ describe("GET /api/v1/users/[username]", () => {
       const body = await response.json();
       expect(body).toEqual({
         id: body.id,
-        email: "email@email.com",
+        email: user.email,
         username: "username",
         password: body.password,
         created_at: body.created_at,
@@ -48,7 +41,7 @@ describe("GET /api/v1/users/[username]", () => {
       const body = await response.json();
       expect(body).toEqual({
         id: body.id,
-        email: "email@email.com",
+        email: user.email,
         username: "username",
         password: body.password,
         created_at: body.created_at,
