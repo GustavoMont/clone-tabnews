@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Projeto para aprender mais sobre programação e desenvolvimento, na vida real",
   "main": "index.js",
+  "engines": {
+    "node": ">=20.x"
+  },
   "scripts": {
     "predev": "npm run services:up && npm run services:wait:database && npm run migrations:up",
     "dev": "next dev",
