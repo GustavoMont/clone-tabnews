@@ -1,6 +1,8 @@
 import database from "infra/database.js";
 import email from "infra/email.js";
+import { NotFoundError } from "infra/errors.js";
 import webserver from "infra/webserver.js";
+import user from "./user.js";
 
 const EXPIRATION_IN_MILISECONDS = 60 * 60 * 15; // 15 minutos
 
@@ -42,30 +44,80 @@ async function create(userId) {
   }
 }
 
-async function findOneByUserId(userId) {
-  const activationToken = await runSelectQuery(userId);
+async function findOneValidById(tokenId) {
+  const activationToken = await runSelectQuery(tokenId);
+
   return activationToken;
 
-  async function runSelectQuery(userId) {
+  async function runSelectQuery(tokenId) {
     const results = await database.query({
       text: `
-      SELECT
-        *
-      FROM
-        user_activation_tokens
-      WHERE
-        user_id = $1
+        SELECT 
+          *
+        FROM
+          user_activation_tokens
+        WHERE
+          id = $1
+        AND
+          expires_at > NOW()
+        LIMIT
+          1
       ;`,
-      values: [userId],
+      values: [tokenId],
     });
+
+    if (results.rowCount === 0) {
+      throw new NotFoundError({
+        action:
+          "Verifique se o token de ativação ainda é válido ou tente um novo cadastro.",
+        message: "Usuário não possui token de ativação válido.",
+      });
+    }
+
     return results.rows[0];
   }
+}
+
+async function markTokenAsUsed(tokenId) {
+  const usedToken = await runUpdateQuery(tokenId);
+  return usedToken;
+
+  async function runUpdateQuery(tokenId) {
+    const results = await database.query({
+      text: `
+      UPDATE
+        user_activation_tokens
+      SET 
+        used_at = timezone('utc', NOW())
+      WHERE
+        id = $1
+      RETURNING
+        *
+      ;`,
+      values: [tokenId],
+    });
+    if (results.rowCount === 0) {
+      throw new NotFoundError({
+        action:
+          "Verifique se o token de ativação ainda é válido ou tente um novo cadastro.",
+        message: "Usuário não possui token de ativação válido.",
+      });
+    }
+    return results.rows[0];
+  }
+}
+
+async function activateUserByUserId(userId) {
+  const activatedUser = await user.setFeatures(userId, ["create:session"]);
+  return activatedUser;
 }
 
 const activation = {
   sendEmailToUser,
   create,
-  findOneByUserId,
+  findOneValidById,
+  markTokenAsUsed,
+  activateUserByUserId,
 };
 
 export default activation;

@@ -1,5 +1,6 @@
 import webserver from "infra/webserver.js";
 import activation from "models/activation.js";
+import user from "models/user.js";
 import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
@@ -24,18 +25,18 @@ describe("Use case: Registration Flow (all succesful)", () => {
       }),
     });
     expect(response.status).toBe(201);
-    const body = await response.json();
-    createdUser = body;
-    expect(body).toEqual({
-      id: body.id,
+    createdUser = await response.json();
+    expect(createdUser).toEqual({
+      id: createdUser.id,
       email: "email@email.com",
       username: "username",
       features: ["read:activation_token"],
-      password: body.password,
-      created_at: body.created_at,
-      updated_at: body.updated_at,
+      password: createdUser.password,
+      created_at: createdUser.created_at,
+      updated_at: createdUser.updated_at,
     });
   });
+  let activationTokenId;
   test("Receive activation email", async () => {
     const lastEmail = await orchestrator.getLastEmail();
 
@@ -43,12 +44,35 @@ describe("Use case: Registration Flow (all succesful)", () => {
     expect(lastEmail.recipients[0]).toBe("<email@email.com>");
     expect(lastEmail.subject).toBe("Ative seu cadastro no MusicNews!");
     expect(lastEmail.text).toContain("username");
-    const userActivationToken = await activation.findOneByUserId(
-      createdUser.id,
-    );
-    expect(lastEmail.text).toContain(userActivationToken.id);
     expect(lastEmail.text).toContain(webserver.origin);
+
+    activationTokenId = orchestrator.extractUUID(lastEmail.text);
+    expect(lastEmail.text).toContain(
+      `${webserver.origin}/cadastro/ativar/${activationTokenId}`,
+    );
+
+    // Token validation
+    const activationToken =
+      await activation.findOneValidById(activationTokenId);
+    expect(activationToken.user_id).toBe(createdUser.id);
+    expect(activationToken.used_at).toBe(null);
   });
-  test("Activate account", async () => {});
+  test("Activate account", async () => {
+    const response = await fetch(
+      `http://localhost:3000/api/v1/activation/${activationTokenId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    expect(response.status).toBe(200);
+    const activationToken = await response.json();
+    expect(Date.parse(activationToken.used_at)).not.toBeNaN();
+
+    const activatedUser = await user.findOneByUsername("username");
+    expect(activatedUser.features).toEqual(["create:session"]);
+  });
   test("Login", async () => {});
 });
