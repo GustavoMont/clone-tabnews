@@ -5,7 +5,11 @@ import session from "models/session.js";
 
 const router = createRouter();
 
-router.post(postHandler).delete(deleteHandler);
+router.use(controller.injectAnonymousOrUser);
+
+router.post(controller.canRequest("create:session"), postHandler);
+
+router.delete(deleteHandler);
 
 export default router.handler(controller.erroHandlers);
 

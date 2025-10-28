@@ -12,7 +12,6 @@ export default router.handler(controller.erroHandlers);
 async function postHandler(req, res) {
   const userInputValues = req.body;
   const newUser = await user.create(userInputValues);
-  // 1. Criar token de ativaçãp
   const activationToken = await activation.create(newUser.id);
   await activation.sendEmailToUser(newUser, activationToken);
 
