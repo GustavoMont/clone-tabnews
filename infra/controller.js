@@ -9,6 +9,7 @@ import {
 } from "./errors.js";
 import * as cookie from "cookie";
 import user from "models/user.js";
+import authorization from "models/authorization.js";
 
 function onErrorHandler(error, req, res) {
   const mappedErrors = [ValidationError, NotFoundError, ForbiddenError];
@@ -57,7 +58,7 @@ function clearSessionCookie(response) {
 function canRequest(feature) {
   return function canRequestMiddleware(request, response, next) {
     const userTryingToRequest = request.context.user;
-    if (userTryingToRequest?.features.includes(feature)) {
+    if (authorization.can(userTryingToRequest, feature)) {
       return next();
     }
     throw new ForbiddenError({
