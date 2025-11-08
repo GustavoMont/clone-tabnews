@@ -8,10 +8,24 @@ beforeAll(async () => {
   await orchestrator.runPendingMigrations();
 });
 
-describe("GET /api/v1/users/[username]", () => {
+describe("GET /api/v1/user", () => {
+  describe("Anonymous User", () => {
+    test("Retrieving user", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/user");
+
+      expect(response.status).toBe(403);
+      const body = await response.json();
+      expect(body).toEqual({
+        name: "ForbiddenError",
+        message: "Você não possui permissão para executar esta ação.",
+        action: 'Verifique se o usuário possui a feature "read:session"',
+        status_code: 403,
+      });
+    });
+  });
   describe("Default user", () => {
     test("With valid session", async () => {
-      const createdUser = await orchestrator.createUser({
+      const createdUser = await orchestrator.createActivatedUser({
         username: "username",
       });
       const createdSession = await orchestrator.createUserSession(
@@ -34,7 +48,7 @@ describe("GET /api/v1/users/[username]", () => {
         email: createdUser.email,
         username: "username",
         password: createdUser.password,
-        features: ["read:activation_token"],
+        features: ["create:session", "read:session"],
         created_at: createdUser.created_at.toISOString(),
         updated_at: createdUser.updated_at.toISOString(),
       });
@@ -60,7 +74,7 @@ describe("GET /api/v1/users/[username]", () => {
       });
     });
     test("With session close to expiration", async () => {
-      const createdUser = await orchestrator.createUser({
+      const createdUser = await orchestrator.createActivatedUser({
         username: "close_to_expire_user",
       });
       jest.useFakeTimers({
@@ -86,7 +100,7 @@ describe("GET /api/v1/users/[username]", () => {
         email: createdUser.email,
         username: createdUser.username,
         password: createdUser.password,
-        features: ["read:activation_token"],
+        features: ["create:session", "read:session"],
         created_at: createdUser.created_at.toISOString(),
         updated_at: createdUser.updated_at.toISOString(),
       });
