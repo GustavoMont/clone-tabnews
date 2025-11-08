@@ -60,6 +60,8 @@ async function findOneValidById(tokenId) {
           id = $1
         AND
           expires_at > NOW()
+        AND
+          used_at is NULL
         LIMIT
           1
       ;`,
@@ -88,9 +90,14 @@ async function markTokenAsUsed(tokenId) {
       UPDATE
         user_activation_tokens
       SET 
-        used_at = timezone('utc', NOW())
+        used_at = timezone('utc', NOW()),
+        updated_at = timezone('utc', NOW())
       WHERE
         id = $1
+      AND
+          expires_at > NOW()
+      AND
+          used_at is NULL
       RETURNING
         *
       ;`,
@@ -121,6 +128,7 @@ const activation = {
   findOneValidById,
   markTokenAsUsed,
   activateUserByUserId,
+  EXPIRATION_IN_MILISECONDS,
 };
 
 export default activation;
