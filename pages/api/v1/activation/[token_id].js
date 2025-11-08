@@ -3,8 +3,9 @@ import activation from "models/activation.js";
 import { createRouter } from "next-connect";
 
 const router = createRouter();
+router.use(controller.injectAnonymousOrUser);
 
-router.patch(patchHandler);
+router.patch(controller.canRequest("read:activation_token"), patchHandler);
 
 async function patchHandler(request, response) {
   const tokenId = request.query.token_id;

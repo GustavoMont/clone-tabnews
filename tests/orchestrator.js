@@ -68,6 +68,10 @@ async function createUserSession(userId) {
   return await session.create(userId);
 }
 
+async function createActivationToken(userId) {
+  return await activation.create(userId);
+}
+
 async function getLastEmail() {
   const emailListResponse = await fetch(`${emailHttpUrl}/messages`);
   const emailListBody = await emailListResponse.json();
@@ -105,6 +109,7 @@ const orchestrator = {
   getLastEmail,
   extractUUID,
   createActivatedUser,
+  createActivationToken,
 };
 
 export default orchestrator;
