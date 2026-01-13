@@ -117,4 +117,80 @@ describe("POST /api/v1/users", () => {
       });
     });
   });
+  describe("Default user", () => {
+    test("With user without required feature", async () => {
+      const user = await orchestrator.createUser();
+      const sessionObject = await orchestrator.createUserSession(user.id);
+      const newUserPayload = {
+        email: "email_2@email.com",
+        username: "username_2",
+        password: "senha123",
+      };
+      const response = await fetch("http://localhost:3000/api/v1/users", {
+        method: "POST",
+        body: JSON.stringify(newUserPayload),
+        headers: {
+          "Content-Type": "application/json",
+          cookie: `session_id=${sessionObject.token}`,
+        },
+      });
+      expect(response.status).toBe(403);
+
+      const body = await response.json();
+      expect(body).toEqual({
+        name: "ForbiddenError",
+        message: "Você não possui permissão para executar esta ação.",
+        action: 'Verifique se o usuário possui a feature "create:user"',
+        status_code: 403,
+      });
+    });
+    test("With user with required", async () => {
+      const userObject = await orchestrator.createUser({
+        features: ["create:session", "create:user"],
+      });
+
+      const sessionObject = await orchestrator.createUserSession(userObject.id);
+      await user.setFeatures(userObject.id, ["create:user"]);
+      const newUserPayload = {
+        email: "email_2@email.com",
+        username: "username_2",
+        password: "senha123",
+      };
+      const response = await fetch("http://localhost:3000/api/v1/users", {
+        method: "POST",
+        body: JSON.stringify(newUserPayload),
+        headers: {
+          "Content-Type": "application/json",
+          cookie: `session_id=${sessionObject.token}`,
+        },
+      });
+      expect(response.status).toBe(201);
+
+      const body = await response.json();
+      expect(body).toEqual({
+        id: body.id,
+        email: "email_2@email.com",
+        username: "username_2",
+        password: body.password,
+        created_at: body.created_at,
+        updated_at: body.updated_at,
+        features: ["read:activation_token"],
+      });
+      expect(uuidVersion(body.id)).toBe(4);
+      expect(Date.parse(body.created_at)).not.toBeNaN();
+      expect(Date.parse(body.updated_at)).not.toBeNaN();
+
+      const userInDatabase = await user.findOneByUsername("username_2");
+      const isPasswordCorrect = await password.compare(
+        "senha123",
+        userInDatabase.password,
+      );
+      expect(isPasswordCorrect).toBeTruthy();
+      const isPasswordIncorrect = !(await password.compare(
+        "senha123aamlaml",
+        userInDatabase.password,
+      ));
+      expect(isPasswordIncorrect).toBeTruthy();
+    });
+  });
 });
