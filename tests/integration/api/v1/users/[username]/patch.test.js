@@ -100,6 +100,36 @@ describe("PATCH /api/v1/users/[username]", () => {
         status_code: 400,
       });
     });
+    test("With `userA` targeting `userB`", async () => {
+      await orchestrator.createUser({
+        username: "userB",
+      });
+      const activatedUserA = await orchestrator.createActivatedUser({
+        username: "userA",
+      });
+      const sessionObject2 = await orchestrator.createUserSession(
+        activatedUserA.id,
+      );
+
+      const response = await fetch("http://localhost:3000/api/v1/users/userB", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `session_id=${sessionObject2.token}`,
+        },
+        body: JSON.stringify({
+          username: "userC",
+        }),
+      });
+      expect(response.status).toBe(403);
+      const body = await response.json();
+      expect(body).toEqual({
+        name: "ForbiddenError",
+        message: "Você não tem permissão para atualizar outro usuário.",
+        action: "Verifique se você possui a feature necessária para atualizar outros usuários.",
+        status_code: 403,
+      });
+    });
     test("With change 'username' case", async () => {
       const activatedUser = await orchestrator.createActivatedUser({
         username: "userCase",
