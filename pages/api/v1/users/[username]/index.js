@@ -14,8 +14,10 @@ export default router.handler(controller.erroHandlers);
 
 async function getHandler(req, res) {
   const username = req.query.username;
+  const requestUser = req.context.user
   const userFound = await user.findOneByUsername(username);
-  return res.status(200).json(userFound);
+  const filteredUser = authorization.filterOutput(requestUser, "read:user", userFound);
+  return res.status(200).json(filteredUser);
 }
 
 async function patchHandler(req, res) {

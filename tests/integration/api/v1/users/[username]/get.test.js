@@ -8,9 +8,8 @@ beforeAll(async () => {
 });
 
 describe("GET /api/v1/users/[username]", () => {
-  let user;
   beforeAll(async () => {
-    user = await orchestrator.createUser({
+    await orchestrator.createUser({
       username: "username",
     });
   });
@@ -23,9 +22,7 @@ describe("GET /api/v1/users/[username]", () => {
       const body = await response.json();
       expect(body).toEqual({
         id: body.id,
-        email: user.email,
         username: "username",
-        password: body.password,
         features: ["read:activation_token"],
         created_at: body.created_at,
         updated_at: body.updated_at,
@@ -42,9 +39,7 @@ describe("GET /api/v1/users/[username]", () => {
       const body = await response.json();
       expect(body).toEqual({
         id: body.id,
-        email: user.email,
         username: "username",
-        password: body.password,
         features: ["read:activation_token"],
         created_at: body.created_at,
         updated_at: body.updated_at,
