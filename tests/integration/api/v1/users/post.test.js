@@ -27,9 +27,7 @@ describe("POST /api/v1/users", () => {
       const body = await response.json();
       expect(body).toEqual({
         id: body.id,
-        email: "email@email.com",
         username: "username",
-        password: body.password,
         features: ["read:activation_token"],
         created_at: body.created_at,
         updated_at: body.updated_at,
@@ -169,9 +167,7 @@ describe("POST /api/v1/users", () => {
       const body = await response.json();
       expect(body).toEqual({
         id: body.id,
-        email: "email_2@email.com",
         username: "username_2",
-        password: body.password,
         created_at: body.created_at,
         updated_at: body.updated_at,
         features: ["read:activation_token"],

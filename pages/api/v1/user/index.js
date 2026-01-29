@@ -1,4 +1,5 @@
 import controller from "infra/controller";
+import authorization from "models/authorization";
 import session from "models/session";
 import user from "models/user.js";
 import { createRouter } from "next-connect";
@@ -22,5 +23,11 @@ async function getHandler(request, response) {
     "Cache-Control",
     "no-store, no-cache, max-age=0, must-revalidate",
   );
-  return response.json(userFound);
+  const requestUser = request.context.user;
+  const secureOutputValues = authorization.filterOutput(
+    requestUser,
+    "read:user:self",
+    userFound,
+  );
+  return response.json(secureOutputValues);
 }

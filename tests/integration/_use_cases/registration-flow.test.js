@@ -29,10 +29,8 @@ describe("Use case: Registration Flow (all succesful)", () => {
     createdUser = await response.json();
     expect(createdUser).toEqual({
       id: createdUser.id,
-      email: "email@email.com",
       username: "username",
       features: ["read:activation_token"],
-      password: createdUser.password,
       created_at: createdUser.created_at,
       updated_at: createdUser.updated_at,
     });
@@ -105,9 +103,8 @@ describe("Use case: Registration Flow (all succesful)", () => {
     const responseBody = await response.json();
     expect(responseBody).toEqual({
       id: createdUser.id,
-      email: createdUser.email,
       username: "username",
-      password: createdUser.password,
+      email: "email@email.com",
       features: ["create:session", "read:session", "update:user"],
       created_at: createdUser.created_at,
       updated_at: responseBody.updated_at,
