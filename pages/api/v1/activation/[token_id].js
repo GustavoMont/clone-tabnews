@@ -1,5 +1,6 @@
 import controller from "infra/controller.js";
 import activation from "models/activation.js";
+import authorization from "models/authorization.js";
 import { createRouter } from "next-connect";
 
 const router = createRouter();
@@ -12,7 +13,13 @@ async function patchHandler(request, response) {
   const usedActivationToken = await activation.markTokenAsUsed(tokenId);
   await activation.activateUserByUserId(usedActivationToken.user_id);
 
-  return response.status(200).json(usedActivationToken);
+  const requestUser = request.context.user;
+  const secureOutputValues = authorization.filterOutput(
+    requestUser,
+    "read:activation_token",
+    usedActivationToken,
+  );
+  return response.status(200).json(secureOutputValues);
 }
 
 export default router.handler(controller.erroHandlers);
