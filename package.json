@@ -4,7 +4,7 @@
   "description": "Projeto para aprender mais sobre programação e desenvolvimento, na vida real",
   "main": "index.js",
   "engines": {
-    "node": ">=20.x"
+    "node": "24"
   },
   "scripts": {
     "predev": "npm run services:up && npm run services:wait:database && npm run migrations:up",
