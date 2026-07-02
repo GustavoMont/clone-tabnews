@@ -17,11 +17,12 @@ export class InternalServerError extends Error {
 }
 
 export class ServiceError extends Error {
-  constructor({ message, cause }) {
+  constructor({ message, cause, action, context }) {
     super(message || "Serviço indisponível no momento", { cause });
     this.statusCode = 503;
-    this.action = "Verifique se o serviço está disponível";
+    this.action = action || "Verifique se o serviço está disponível";
     this.name = "ServiceError";
+    this.context = context;
   }
 
   toJSON() {
@@ -30,6 +31,7 @@ export class ServiceError extends Error {
       message: this.message,
       action: this.action,
       status_code: this.statusCode,
+      context: this.context,
     };
   }
 }
@@ -76,6 +78,25 @@ export class UnauthorizedError extends Error {
     this.statusCode = 401;
     this.action = action || "Faça novamente o login para continuar.";
     this.name = "UnauthorizedError";
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      status_code: this.statusCode,
+    };
+  }
+}
+
+export class ForbiddenError extends Error {
+  constructor({ message, action, cause }) {
+    super(message || "Acesso negado.", { cause });
+    this.statusCode = 403;
+    this.action =
+      action || "Verifique as features necessárias antes de continuar.";
+    this.name = "ForbiddenError";
   }
 
   toJSON() {

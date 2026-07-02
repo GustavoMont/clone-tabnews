@@ -1,9 +1,10 @@
 import { faker } from "@faker-js/faker/.";
 import retry from "async-retry";
-import database from "infra/database";
-import migrator from "models/migrator";
-import session from "models/session";
-import user from "models/user";
+import database from "infra/database.js";
+import activation from "models/activation.js";
+import migrator from "models/migrator.js";
+import session from "models/session.js";
+import user from "models/user.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -58,13 +59,25 @@ function createUser(userObject) {
   });
 }
 
+async function createActivatedUser(userObject) {
+  const createdUser = await createUser(userObject);
+  return await activation.activateUserByUserId(createdUser.id);
+}
+
 async function createUserSession(userId) {
   return await session.create(userId);
+}
+
+async function createActivationToken(userId) {
+  return await activation.create(userId);
 }
 
 async function getLastEmail() {
   const emailListResponse = await fetch(`${emailHttpUrl}/messages`);
   const emailListBody = await emailListResponse.json();
+  if (!emailListBody.length) {
+    return null;
+  }
   const lastEmailItem = emailListBody.pop();
   const emailTextResponse = await fetch(
     `${emailHttpUrl}/messages/${lastEmailItem.id}.plain`,
@@ -80,6 +93,17 @@ async function deleteAllEmails() {
   await fetch(url, { method: "DELETE" });
 }
 
+function extractUUID(text) {
+  const match = text.match(/[0-9-a-f-A-F-]{36}/);
+
+  return match ? match[0] : null;
+}
+
+async function addFeatures(userObject, features) {
+  const updatedUser = await user.addFeatures(userObject.id, features);
+  return updatedUser;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -88,6 +112,10 @@ const orchestrator = {
   createUserSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID,
+  createActivatedUser,
+  createActivationToken,
+  addFeatures,
 };
 
 export default orchestrator;
